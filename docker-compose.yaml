@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: app-api
+    entrypoint: dockerize -wait tcp://db:5432 -timeout 40s ./.docker/entrypoint.sh
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/home/node/app
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    build: ./.docker/postgres
+    container_name: postgresDB
+    restart: always
+    tty: true
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - ./.docker/dbdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: PGAdmin
+    tty: true
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@user.com
+      - PGADMIN_DEFAULT_PASSWORD=123456
+    ports:
+      - 8080:80
+    depends_on:
+      - db
+    env_file:
+      - .env
