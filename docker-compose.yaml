@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: nestjs-app
+    entrypoint: dockerize -wait tcp://${DB_HOST}:${DB_PORT} -timeout 40s ./.docker/entrypoint.sh
+    volumes:
+      - .:/home/node/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+
+  db:
+    build: ./.docker/db
+    container_name: nestjs-db
+    restart: always
+    ports:
+      - 5432:5432
+    tty: true
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - ./.docker/dbdata:/var/lib/postgresql/data
